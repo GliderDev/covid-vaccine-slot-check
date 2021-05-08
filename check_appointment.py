@@ -17,13 +17,11 @@ def get_subscribers():
     return result
 
 def send_alert(chat_id, message):
-    print(message)
-    send_text = 'https://api.telegram.org/bot' + TOKEN + '/sendMessage?chat_id=' + chat_id + '&parse_mode=Markdown&text=' + message
+    send_text = f'https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chat_id}&parse_mode=Markdown&text={message}'
     response = requests.get(send_text)
     return response.json()
 
 def check_appointment_slot():
-    print("Script Running to check available slots!")
     subscribers = get_subscribers()
     headers = {
       'authority': 'cdn-api.co-vin.in',
@@ -42,16 +40,10 @@ def check_appointment_slot():
     }
     next_day = datetime.now() + timedelta(days=1)
     next_day = next_day.strftime("%d-%m-%Y")
-    print(next_day)
     url = f'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id={DISTRICT_ID}&date={next_day}'
     res = requests.get(url, headers=headers)
-
-    print(res.json())
-
     result = res.json()
-
     centers = result['centers']
-
     for center in centers:
         sessions = center['sessions']
         if sessions:
@@ -63,7 +55,6 @@ def check_appointment_slot():
                     available_capacity = session['available_capacity']
                     message = f"Vaccination available at {center_name} {center_address} on {next_day}. Book ASAP! Mininum age: {min_age_limit}, Available Slots: {available_capacity}"
                     for subscriber_id in subscribers:
-                        print("sending message to ", subscriber_id)
                         send_alert(subscriber_id, message)
                 else:
                     pass
